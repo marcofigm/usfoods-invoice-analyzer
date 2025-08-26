@@ -1,0 +1,5 @@
+
+> usfoods-invoice-analyzer@0.1.0 import-test
+> tsx scripts/process-invoices.ts --test
+
+[dotenv@17.2.1] injecting env (4) from .env.local -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit

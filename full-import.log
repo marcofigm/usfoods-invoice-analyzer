@@ -1,0 +1,719 @@
+
+> usfoods-invoice-analyzer@0.1.0 import-invoices
+> tsx scripts/process-invoices.ts
+
+🔍 Script starting...
+[dotenv@17.2.1] injecting env (4) from .env.local -- tip: ⚙️  suppress all logs with { quiet: true }
+🔍 Checking if should run...
+import.meta.url: file:///Users/marcofigueroa/LOS%20PINOS%20-%20USFOODS/usfoods-invoice-analyzer/scripts/process-invoices.ts
+process.argv[1]: /Users/marcofigueroa/LOS PINOS - USFOODS/usfoods-invoice-analyzer/scripts/process-invoices.ts
+🚀 Running main process...
+🚀 Starting US Foods Invoice Processing...
+
+📊 Process arguments: [
+  '/opt/homebrew/Cellar/node/24.4.0/bin/node',
+  '/Users/marcofigueroa/LOS PINOS - USFOODS/usfoods-invoice-analyzer/scripts/process-invoices.ts'
+]
+🔧 Initializing database importer...
+🔍 Initializing database connection...
+✅ Database connection successful
+✅ Found existing Los Pinos restaurant
+✅ Found existing Bee Caves location
+✅ Found US Foods vendor
+✅ Database importer initialized
+
+📁 Processing directory: /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/1
+Found 100 CSV files
+📄 Processing: 2025031721074257427.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4138129 already exists, skipping
+📄 Processing: 2025032021064596003.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4237475 with 33 items
+📄 Processing: 2025032409091030948.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4301919 with 18 items
+📄 Processing: 2025032421072643696.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4324055 with 18 items
+📄 Processing: 2025032721080379314.csv
+Duplicate headers found and renamed.
+✅ Imported invoice 4430017 with 1 items
+📄 Processing: 2025032721080379319.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4430018 with 21 items
+📄 Processing: 2025032919151180450.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4490957 with 18 items
+📄 Processing: 2025033121075322338.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4515325 with 21 items
+📄 Processing: 2025040321081370506.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4617774 with 34 items
+📄 Processing: 2025040519173879324.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4671764 with 1 items
+📄 Processing: 2025040519183979561.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4683907 with 17 items
+📄 Processing: 2025040721094725844.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4707824 with 24 items
+📄 Processing: 2025040909084360897.csv
+Duplicate headers found and renamed.
+✅ Imported invoice 4742555 with 2 items
+📄 Processing: 2025040921053764634.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025040921053764634.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/1/2025040921053764634.csv: No data rows found
+📄 Processing: 2025041021074973816.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4810406 with 39 items
+📄 Processing: 2025041121044567934.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4825772 with 2 items
+📄 Processing: 2025041121044767962.csv
+Duplicate headers found and renamed.
+✅ Imported invoice 4826255 with 1 items
+📄 Processing: 2025041121044967983.csv
+Duplicate headers found and renamed.
+✅ Imported invoice 4826650 with 1 items
+📄 Processing: 2025041219070375200.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4876069 with 18 items
+📄 Processing: 2025041421080121501.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4897946 with 27 items
+📄 Processing: 2025041721082966150.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5002914 with 28 items
+📄 Processing: 2025041809091354751.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5020200 with 1 items
+📄 Processing: 2025042421091650176.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5193710 with 47 items
+📄 Processing: 2025042521042857059.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5209919 with 1 items
+📄 Processing: 2025042619122570300.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5257948 with 15 items
+📄 Processing: 2025042821051211941.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5193710 already exists, skipping
+📄 Processing: 2025042821081413884.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5282958 with 24 items
+📄 Processing: 2025050121062959065.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025050121062959065.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/1/2025050121062959065.csv: No data rows found
+📄 Processing: 2025050121094161138.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5389615 with 34 items
+📄 Processing: 2025050221060657095.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025050221060657095.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/1/2025050221060657095.csv: No data rows found
+📄 Processing: 2025050221064557730.csv
+Duplicate headers found and renamed.
+✅ Imported invoice 5401841 with 1 items
+📄 Processing: 2025050309090272818.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5441506 with 1 items
+📄 Processing: 2025050319061779077.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5452648 with 22 items
+📄 Processing: 2025050521121137149.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5478188 with 30 items
+📄 Processing: 2025050821045484777.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025050821045484777.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/1/2025050821045484777.csv: No data rows found
+📄 Processing: 2025050821045784804.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5193710 already exists, skipping
+📄 Processing: 2025050821071986468.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5583069 with 33 items
+📄 Processing: 2025050921051181096.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5583069 already exists, skipping
+📄 Processing: 2025051019123504148.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5653242 with 22 items
+📄 Processing: 2025051221073858725.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5675819 with 34 items
+📄 Processing: 2025051521081295934.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5781427 with 30 items
+📄 Processing: 2025051719041418810.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5845019 with 20 items
+📄 Processing: 2025051921045871914.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025051921045871914.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/1/2025051921045871914.csv: No data rows found
+📄 Processing: 2025051921082974069.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5867758 with 19 items
+📄 Processing: 2025052221081015164.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3095774 with 32 items
+📄 Processing: 2025052419092318327.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3163153 with 1 items
+📄 Processing: 2025052419092318329.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3163154 with 24 items
+📄 Processing: 2025052621063068195.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3187694 with 23 items
+📄 Processing: 2025052921075143100.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3279735 with 31 items
+📄 Processing: 2025053119035645017.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3348200 with 16 items
+📄 Processing: 2025060221101098958.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3377743 with 32 items
+📄 Processing: 2025060521073129893.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3476073 with 24 items
+📄 Processing: 2025060719092729519.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3543018 with 1 items
+📄 Processing: 2025060719092829522.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3543020 with 23 items
+📄 Processing: 2025060921074781454.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3571404 with 25 items
+📄 Processing: 2025061021045891953.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3580746 with 2 items
+📄 Processing: 2025061221074403496.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3668362 with 23 items
+📄 Processing: 2025061419035898271.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3733676 with 17 items
+📄 Processing: 2025061621042456442.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025061621042456442.csv: Invalid time value
+📄 Processing: 2025061621074558202.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3761458 with 23 items
+📄 Processing: 2025061821064184186.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025061821064184186.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/1/2025061821064184186.csv: No data rows found
+📄 Processing: 2025061921065295836.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3863202 with 34 items
+📄 Processing: 2025061921080797120.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3879394 with 2 items
+📄 Processing: 2025062119072492469.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3929337 with 20 items
+📄 Processing: 2025062321083149105.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3958384 with 23 items
+📄 Processing: 2025062421053960630.csv
+Duplicate headers found and renamed.
+✅ Imported invoice 3967679 with 1 items
+📄 Processing: 2025062421054060649.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 3967954 with 1 items
+📄 Processing: 2025062621071080926.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4054712 with 28 items
+📄 Processing: 2025062819101075334.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4124513 with 20 items
+📄 Processing: 2025063021084927811.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4148766 with 23 items
+📄 Processing: 2025070121124946752.csv
+Duplicate headers found and renamed.
+✅ Imported invoice 4184922 with 1 items
+📄 Processing: 2025070221085059151.csv
+Duplicate headers found and renamed.
+✅ Imported invoice 4232967 with 1 items
+📄 Processing: 2025070321075360889.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4254494 with 37 items
+📄 Processing: 2025070519150746952.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4317955 with 16 items
+📄 Processing: 2025070721063658289.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4341761 with 20 items
+📄 Processing: 2025071021050677704.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025071021050677704.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/1/2025071021050677704.csv: No data rows found
+📄 Processing: 2025071021085679381.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4442472 with 25 items
+📄 Processing: 2025071421091133041.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4532779 with 36 items
+📄 Processing: 2025071621051861227.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025071621051861227.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/1/2025071621051861227.csv: No data rows found
+📄 Processing: 2025071721073765350.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4633861 with 28 items
+📄 Processing: 2025071919041662120.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4699076 with 16 items
+📄 Processing: 2025072121080819293.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4725162 with 28 items
+📄 Processing: 2025072421124450833.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4828424 with 36 items
+📄 Processing: 2025072521103539219.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4869278 with 3 items
+📄 Processing: 2025072619093945580.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4893661 with 16 items
+📄 Processing: 2025072821085897039.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4922878 with 27 items
+📄 Processing: 2025073121082027911.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5022018 with 41 items
+📄 Processing: 2025080219024114850.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5076635 with 1 items
+📄 Processing: 2025080219051016554.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5089318 with 16 items
+📄 Processing: 2025080421092776055.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5116919 with 33 items
+📄 Processing: 2025080721085722162.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5219852 with 29 items
+📄 Processing: 2025080919071546432.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5286792 with 18 items
+📄 Processing: 2025081121113904703.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5313759 with 16 items
+📄 Processing: 2025081209093912899.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5325023 with 1 items
+📄 Processing: 2025081421071946757.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5420840 with 30 items
+📄 Processing: 2025081619095051037.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5484691 with 16 items
+📄 Processing: 2025081821090803246.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5513517 with 21 items
+📄 Processing: 2025081921061919165.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025081921061919165.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/1/2025081921061919165.csv: No data rows found
+📄 Processing: 2025082121080455203.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5612367 with 29 items
+📄 Processing: 2025082516492819527.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 5704512 with 29 items
+
+📁 Processing directory: /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/2
+Found 101 CSV files
+📄 Processing: 2025031519033908372.csv
+Duplicate headers found and renamed.
+⚠️  Failed to insert price records: duplicate key value violates unique constraint "product_prices_product_id_location_id_price_date_supplier_l_key"
+✅ Imported invoice 4111128 with 21 items
+📄 Processing: 2025031721074257427.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4138129 already exists, skipping
+📄 Processing: 2025032021064596003.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4237475 already exists, skipping
+📄 Processing: 2025032409091030948.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4301919 already exists, skipping
+📄 Processing: 2025032421072643696.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4324055 already exists, skipping
+📄 Processing: 2025032721080379314.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4430017 already exists, skipping
+📄 Processing: 2025032721080379319.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4430018 already exists, skipping
+📄 Processing: 2025032919151180450.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4490957 already exists, skipping
+📄 Processing: 2025033121075322338.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4515325 already exists, skipping
+📄 Processing: 2025040321081370506.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4617774 already exists, skipping
+📄 Processing: 2025040519173879324.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4671764 already exists, skipping
+📄 Processing: 2025040519183979561.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4683907 already exists, skipping
+📄 Processing: 2025040721094725844.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4707824 already exists, skipping
+📄 Processing: 2025040909084360897.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4742555 already exists, skipping
+📄 Processing: 2025040921053764634.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025040921053764634.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/2/2025040921053764634.csv: No data rows found
+📄 Processing: 2025041021074973816.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4810406 already exists, skipping
+📄 Processing: 2025041121044567934.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4825772 already exists, skipping
+📄 Processing: 2025041121044767962.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4826255 already exists, skipping
+📄 Processing: 2025041121044967983.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4826650 already exists, skipping
+📄 Processing: 2025041219070375200.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4876069 already exists, skipping
+📄 Processing: 2025041421080121501.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4897946 already exists, skipping
+📄 Processing: 2025041721082966150.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5002914 already exists, skipping
+📄 Processing: 2025041809091354751.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5020200 already exists, skipping
+📄 Processing: 2025042421091650176.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5193710 already exists, skipping
+📄 Processing: 2025042521042857059.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5209919 already exists, skipping
+📄 Processing: 2025042619122570300.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5257948 already exists, skipping
+📄 Processing: 2025042821051211941.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5193710 already exists, skipping
+📄 Processing: 2025042821081413884.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5282958 already exists, skipping
+📄 Processing: 2025050121062959065.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025050121062959065.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/2/2025050121062959065.csv: No data rows found
+📄 Processing: 2025050121094161138.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5389615 already exists, skipping
+📄 Processing: 2025050221060657095.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025050221060657095.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/2/2025050221060657095.csv: No data rows found
+📄 Processing: 2025050221064557730.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5401841 already exists, skipping
+📄 Processing: 2025050309090272818.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5441506 already exists, skipping
+📄 Processing: 2025050319061779077.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5452648 already exists, skipping
+📄 Processing: 2025050521121137149.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5478188 already exists, skipping
+📄 Processing: 2025050821045484777.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025050821045484777.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/2/2025050821045484777.csv: No data rows found
+📄 Processing: 2025050821045784804.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5193710 already exists, skipping
+📄 Processing: 2025050821071986468.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5583069 already exists, skipping
+📄 Processing: 2025050921051181096.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5583069 already exists, skipping
+📄 Processing: 2025051019123504148.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5653242 already exists, skipping
+📄 Processing: 2025051221073858725.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5675819 already exists, skipping
+📄 Processing: 2025051521081295934.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5781427 already exists, skipping
+📄 Processing: 2025051719041418810.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5845019 already exists, skipping
+📄 Processing: 2025051921045871914.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025051921045871914.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/2/2025051921045871914.csv: No data rows found
+📄 Processing: 2025051921082974069.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5867758 already exists, skipping
+📄 Processing: 2025052221081015164.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3095774 already exists, skipping
+📄 Processing: 2025052419092318327.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3163153 already exists, skipping
+📄 Processing: 2025052419092318329.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3163154 already exists, skipping
+📄 Processing: 2025052621063068195.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3187694 already exists, skipping
+📄 Processing: 2025052921075143100.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3279735 already exists, skipping
+📄 Processing: 2025053119035645017.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3348200 already exists, skipping
+📄 Processing: 2025060221101098958.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3377743 already exists, skipping
+📄 Processing: 2025060521073129893.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3476073 already exists, skipping
+📄 Processing: 2025060719092729519.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3543018 already exists, skipping
+📄 Processing: 2025060719092829522.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3543020 already exists, skipping
+📄 Processing: 2025060921074781454.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3571404 already exists, skipping
+📄 Processing: 2025061021045891953.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3580746 already exists, skipping
+📄 Processing: 2025061221074403496.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3668362 already exists, skipping
+📄 Processing: 2025061419035898271.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3733676 already exists, skipping
+📄 Processing: 2025061621042456442.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025061621042456442.csv: Invalid time value
+📄 Processing: 2025061621074558202.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3761458 already exists, skipping
+📄 Processing: 2025061821064184186.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025061821064184186.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/2/2025061821064184186.csv: No data rows found
+📄 Processing: 2025061921065295836.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3863202 already exists, skipping
+📄 Processing: 2025061921080797120.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3879394 already exists, skipping
+📄 Processing: 2025062119072492469.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3929337 already exists, skipping
+📄 Processing: 2025062321083149105.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3958384 already exists, skipping
+📄 Processing: 2025062421053960630.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3967679 already exists, skipping
+📄 Processing: 2025062421054060649.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 3967954 already exists, skipping
+📄 Processing: 2025062621071080926.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4054712 already exists, skipping
+📄 Processing: 2025062819101075334.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4124513 already exists, skipping
+📄 Processing: 2025063021084927811.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4148766 already exists, skipping
+📄 Processing: 2025070121124946752.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4184922 already exists, skipping
+📄 Processing: 2025070221085059151.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4232967 already exists, skipping
+📄 Processing: 2025070321075360889.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4254494 already exists, skipping
+📄 Processing: 2025070519150746952.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4317955 already exists, skipping
+📄 Processing: 2025070721063658289.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4341761 already exists, skipping
+📄 Processing: 2025071021050677704.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025071021050677704.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/2/2025071021050677704.csv: No data rows found
+📄 Processing: 2025071021085679381.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4442472 already exists, skipping
+📄 Processing: 2025071421091133041.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4532779 already exists, skipping
+📄 Processing: 2025071621051861227.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025071621051861227.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/2/2025071621051861227.csv: No data rows found
+📄 Processing: 2025071721073765350.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4633861 already exists, skipping
+📄 Processing: 2025071919041662120.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4699076 already exists, skipping
+📄 Processing: 2025072121080819293.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4725162 already exists, skipping
+📄 Processing: 2025072421124450833.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4828424 already exists, skipping
+📄 Processing: 2025072521103539219.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4869278 already exists, skipping
+📄 Processing: 2025072619093945580.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4893661 already exists, skipping
+📄 Processing: 2025072821085897039.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 4922878 already exists, skipping
+📄 Processing: 2025073121082027911.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5022018 already exists, skipping
+📄 Processing: 2025080219024114850.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5076635 already exists, skipping
+📄 Processing: 2025080219051016554.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5089318 already exists, skipping
+📄 Processing: 2025080421092776055.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5116919 already exists, skipping
+📄 Processing: 2025080721085722162.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5219852 already exists, skipping
+📄 Processing: 2025080919071546432.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5286792 already exists, skipping
+📄 Processing: 2025081121113904703.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5313759 already exists, skipping
+📄 Processing: 2025081209093912899.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5325023 already exists, skipping
+📄 Processing: 2025081421071946757.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5420840 already exists, skipping
+📄 Processing: 2025081619095051037.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5484691 already exists, skipping
+📄 Processing: 2025081821090803246.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5513517 already exists, skipping
+📄 Processing: 2025081921061919165.csv
+Duplicate headers found and renamed.
+❌ Error processing 2025081921061919165.csv: Failed to parse /Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/2/2025081921061919165.csv: No data rows found
+📄 Processing: 2025082121080455203.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5612367 already exists, skipping
+📄 Processing: InvoiceDetails.csv
+Duplicate headers found and renamed.
+⏭️  Invoice 5704512 already exists, skipping
+
+🎉 Processing Complete!
+✅ Successfully processed: 181 invoices
+❌ Errors encountered: 20 invoices
+
+📊 Generating Summary Statistics...
+
+📈 Summary Statistics:
