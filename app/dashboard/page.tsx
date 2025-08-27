@@ -81,13 +81,21 @@ export default function DashboardPage() {
       console.log('Sample product data:', products[0]);
       
       
+      // Get actual invoice count and metrics from database
+      const { data: invoiceMetrics } = await supabase
+        .from('invoices')
+        .select('id, net_amount');
+        
+      const actualInvoiceCount = invoiceMetrics?.length || 0;
+      const actualTotalSpend = invoiceMetrics?.reduce((sum, inv) => sum + (inv.net_amount || 0), 0) || 0;
+      
       // Calculate metrics directly from the real product data
       const metricsData: DashboardMetrics = {
         totalProducts: products.length,
-        totalInvoices: products.reduce((sum: number, p: ProductSummary) => sum + p.purchase_frequency, 0),
-        totalSpend: products.reduce((sum: number, p: ProductSummary) => sum + p.total_spent, 0),
+        totalInvoices: actualInvoiceCount,
+        totalSpend: actualTotalSpend,
         totalLocations: [...new Set(products.flatMap((p: ProductSummary) => p.locations))].length,
-        avgOrderValue: products.length > 0 ? products.reduce((sum: number, p: ProductSummary) => sum + p.total_spent, 0) / products.reduce((sum: number, p: ProductSummary) => sum + p.purchase_frequency, 0) : 0,
+        avgOrderValue: actualInvoiceCount > 0 ? actualTotalSpend / actualInvoiceCount : 0,
         avgProductsPerInvoice: 0
       };
       
@@ -153,28 +161,35 @@ export default function DashboardPage() {
       
       console.log('✅ Corrected top product:', finalTopProducts[0]?.product_number, 'spend:', finalTopProducts[0]?.total_spend);
       
-      // Price alerts from variance
-      const alertsData: PriceAlert[] = [];
-      products.forEach((product: ProductSummary) => {
-        if (product.min_price && product.max_price && product.min_price > 0) {
-          const priceChange = product.max_price - product.min_price;
-          const priceChangePercent = (priceChange / product.min_price) * 100;
-          
-          if (priceChangePercent >= 15) {
-            alertsData.push({
-              product_number: product.product_number,
-              name: product.name,
-              category: product.category,
-              current_price: product.last_price,
-              previous_price: product.min_price,
-              price_change: priceChange,
-              price_change_percent: priceChangePercent,
-              last_purchase_date: product.last_purchase_date,
-              location_name: product.locations[0] || 'Unknown'
-            });
-          }
-        }
-      });
+      // Get actual price alerts from database
+      const { data: dbAlerts } = await supabase
+        .from('price_alerts')
+        .select(`
+          id,
+          product_number,
+          alert_level,
+          current_price,
+          threshold_price,
+          price_change_percent,
+          created_at,
+          products (name, category)
+        `)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+        
+      const alertsData: PriceAlert[] = (dbAlerts || []).map((alert: Record<string, unknown>) => ({
+        product_number: alert.product_number as string,
+        name: ((alert.products as Record<string, unknown>)?.name as string) || 'Unknown Product',
+        category: ((alert.products as Record<string, unknown>)?.category as string) || 'Unknown',
+        current_price: alert.current_price as number,
+        previous_price: alert.threshold_price as number,
+        price_change: (alert.current_price as number) - (alert.threshold_price as number),
+        price_change_percent: alert.price_change_percent as number,
+        last_purchase_date: new Date(alert.created_at as string).toISOString().split('T')[0],
+        location_name: 'Various' // Price alerts are system-wide
+      }));
+      
+      console.log('📊 Loaded', alertsData.length, 'actual price alerts from database');
       
       // Location comparison from products
       const locationMap = new Map<string, { total_spend: number; product_count: number; latest_date: string; }>();
@@ -525,7 +540,7 @@ export default function DashboardPage() {
                       labelLine={false}
                       fontSize={12}
                     >
-                      {categorySpending.map((entry, index) => (
+                      {categorySpending.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
                       ))}
                     </Pie>
