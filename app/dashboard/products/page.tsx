@@ -5,7 +5,7 @@ import { Search, ArrowUpDown, ArrowUp, ArrowDown, Eye, TrendingUp, TrendingDown,
 import { Input } from '@/src/components/ui/input';
 import { Button } from '@/src/components/ui/button';
 import { Badge } from '@/src/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card';
+import { Card, CardContent } from '@/src/components/ui/card';
 import {
   Table,
   TableBody,
@@ -15,48 +15,10 @@ import {
   TableRow,
 } from '@/src/components/ui/table';
 import { ProductDetailModal } from '@/components/ProductDetailModal';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import type { ProductSummary } from '@/lib/supabase/types';
 import { getProductsSummary } from '@/lib/supabase/browser';
 
-// Mock data for development - replace with actual API call
-const mockProducts: ProductSummary[] = [
-  {
-    id: '1',
-    product_number: '8534723',
-    name: 'BEEF, PLATE INS SKIRT CHO 121D',
-    category: 'Protein',
-    last_price: 7.74,
-    last_purchase_date: '2024-08-25',
-    purchase_frequency: 831,
-    total_spent: 1143212.47,
-    pack_sizes: ['4/5 LBA'],
-    locations: ['Bee Caves', '360']
-  },
-  {
-    id: '2',
-    product_number: '4064044',
-    name: 'CHEESE, AMER LOAF PROCD YLW EX',
-    category: 'Dairy',
-    last_price: 82.09,
-    last_purchase_date: '2024-08-20',
-    purchase_frequency: 911,
-    total_spent: 506749.16,
-    pack_sizes: ['6/5 LB'],
-    locations: ['Bee Caves', '360']
-  },
-  {
-    id: '3',
-    product_number: '6898811',
-    name: 'BEEF, DCD 1" TRIPE HNYCD RAW',
-    category: 'Protein',
-    last_price: 6.19,
-    last_purchase_date: '2024-08-18',
-    purchase_frequency: 590,
-    total_spent: 424406.05,
-    pack_sizes: ['10 LBA'],
-    locations: ['Bee Caves']
-  }
-];
 
 type SortField = keyof ProductSummary | 'variance';
 type SortDirection = 'asc' | 'desc' | null;
@@ -71,13 +33,16 @@ export default function ProductsPage() {
 
   // Calculate variance for each product (price range percentage)
   const calculateVariance = (product: ProductSummary): number => {
-    // This would need actual price range data from database
-    // For now, return a mock percentage
-    return Math.round(Math.random() * 10 * 100) / 100;
+    if (product.min_price && product.max_price && product.min_price > 0) {
+      const range = product.max_price - product.min_price;
+      const percentage = (range / product.min_price) * 100;
+      return Math.round(percentage * 100) / 100;
+    }
+    return 0;
   };
 
   // Calculate price trend for visual indicator
-  const calculatePriceTrend = (product: ProductSummary): 'up' | 'down' | 'stable' => {
+  const calculatePriceTrend = (_product: ProductSummary): 'up' | 'down' | 'stable' => {
     // This would need historical price data
     // For now, return random trend
     const trends = ['up', 'down', 'stable'] as const;
@@ -191,17 +156,9 @@ export default function ProductsPage() {
     : 0;
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Package className="h-6 w-6" />
-          <h1 className="text-2xl font-bold">Product Table View</h1>
-          <Badge variant="secondary">Enterprise Mode</Badge>
-        </div>
-      </div>
-
-      {/* Summary Statistics */}
+    <DashboardLayout>
+      <div className="space-y-3">
+        {/* Summary Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border rounded-lg shadow-sm bg-white p-6">
           <CardContent className="p-0">
@@ -213,7 +170,7 @@ export default function ProductsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
               <span className="text-2xl">💰</span>
@@ -224,7 +181,7 @@ export default function ProductsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
               <span className="text-2xl">📊</span>
@@ -238,7 +195,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Search */}
-      <Card>
+      <Card className="bg-white">
         <CardContent className="p-4">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -363,8 +320,10 @@ export default function ProductsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          {formatCurrency(product.last_price - 0.5)} -{' '}
-                          {formatCurrency(product.last_price + 0.5)}
+                          {product.min_price && product.max_price && product.min_price !== product.max_price ? 
+                            `${formatCurrency(product.min_price)} - ${formatCurrency(product.max_price)}` 
+                            : formatCurrency(product.last_price)
+                          }
                         </div>
                       </TableCell>
                       <TableCell className="font-medium">
@@ -401,14 +360,15 @@ export default function ProductsPage() {
         </CardContent>
       </Card>
 
-      {/* Product Detail Modal */}
-      {selectedProduct && (
-        <ProductDetailModal
-          product={selectedProduct}
-          isOpen={!!selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-        />
-      )}
-    </div>
+        {/* Product Detail Modal */}
+        {selectedProduct && (
+          <ProductDetailModal
+            product={selectedProduct}
+            isOpen={!!selectedProduct}
+            onClose={() => setSelectedProduct(null)}
+          />
+        )}
+      </div>
+    </DashboardLayout>
   );
 }

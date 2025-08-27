@@ -93,6 +93,10 @@ export interface ProductSummary {
   total_spent: number;
   pack_sizes: string[];
   locations: string[];
+  min_price?: number;
+  max_price?: number;
+  avg_price?: number;
+  price_variance?: number;
 }
 
 export interface ProductPurchaseHistory {

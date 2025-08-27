@@ -63,110 +63,138 @@ export async function getProductsSummary(
 }
 
 /**
- * Fallback method to get products summary using basic queries
+ * Improved fallback method to get products summary using efficient queries
+ * Only returns products that have actual purchase records
  */
 async function getProductsSummaryFallback(
   filters: ProductFilters = {},
   options: QueryOptions = {}
 ): Promise<ProductSummary[]> {
-  let query = supabase
-    .from('products')
-    .select(`
-      id,
-      product_number,
-      name,
-      category
-    `);
-
-  // Apply filters
-  if (filters.category) {
-    query = query.eq('category', filters.category);
-  }
-
-  if (filters.search) {
-    query = query.or(`name.ilike.%${filters.search}%,product_number.ilike.%${filters.search}%`);
-  }
-
-  // Apply sorting and pagination
-  query = query
-    .order(options.sortBy || 'name', { ascending: options.sortOrder !== 'desc' })
-    .range(options.offset || 0, (options.offset || 0) + (options.limit || 100) - 1);
-
-  const { data: products, error } = await query;
-
-  if (error) {
-    console.error('Error fetching products:', error);
-    throw error;
-  }
-
-  if (!products) return [];
-
-  // For each product, get additional summary data
-  const productSummaries: ProductSummary[] = [];
-
-  for (const product of products) {
-    // Get latest price and purchase info
-    const { data: latestPurchase } = await supabase
-      .from('product_prices')
+  try {
+    console.log('Using fallback method for products summary');
+    
+    // Get products that have actual purchase records with aggregated data
+    let baseQuery = supabase
+      .from('products')
       .select(`
-        unit_price,
-        price_date,
+        id,
+        product_number,
+        name,
+        category
+      `);
+
+    // Apply filters to the base products
+    if (filters.category) {
+      baseQuery = baseQuery.eq('category', filters.category);
+    }
+
+    if (filters.search) {
+      baseQuery = baseQuery.or(`name.ilike.%${filters.search}%,product_number.ilike.%${filters.search}%`);
+    }
+
+    // Get products first
+    const { data: products, error: productsError } = await baseQuery
+      .order(options.sortBy || 'name', { ascending: options.sortOrder !== 'desc' })
+      .range(options.offset || 0, (options.offset || 0) + (options.limit || 100) - 1);
+
+    if (productsError) {
+      console.error('Error fetching products:', productsError);
+      throw productsError;
+    }
+
+    if (!products) return [];
+
+    // Get aggregated purchase data for all products at once
+    const productNumbers = products.map(p => p.product_number);
+    
+    // Get all purchase data in one query
+    const { data: purchaseData, error: purchaseError } = await supabase
+      .from('invoice_items')
+      .select(`
+        product_number,
         pack_size,
-        location:locations(name)
+        unit_price,
+        extended_price,
+        created_at,
+        invoice:invoices!inner(
+          id,
+          invoice_date,
+          location:locations(name)
+        )
       `)
-      .eq('product_id', product.id)
-      .order('price_date', { ascending: false })
-      .limit(1);
+      .in('product_number', productNumbers)
+      .order('invoice.invoice_date', { ascending: false });
 
-    // Get purchase frequency (count of invoices with this product)
-    const { count: purchaseCount } = await supabase
-      .from('invoice_items')
-      .select('*', { count: 'exact', head: true })
-      .eq('product_number', product.product_number);
+    if (purchaseError) {
+      console.error('Error fetching purchase data:', purchaseError);
+      // Continue with empty purchase data rather than failing
+    }
 
-    // Get total spent on this product
-    const { data: spendData } = await supabase
-      .from('invoice_items')
-      .select('extended_price')
-      .eq('product_number', product.product_number);
-
-    const totalSpent = spendData?.reduce((sum, item) => sum + item.extended_price, 0) || 0;
-
-    // Get unique pack sizes
-    const { data: packSizeData } = await supabase
-      .from('invoice_items')
-      .select('pack_size')
-      .eq('product_number', product.product_number);
-
-    const packSizes = [...new Set(packSizeData?.map(item => item.pack_size) || [])];
-
-    // Get locations where this product was purchased
-    const { data: locationData } = await supabase
-      .from('invoice_items')
-      .select(`
-        invoice:invoices(location:locations(name))
-      `)
-      .eq('product_number', product.product_number);
-
-    const locations = [...new Set(
-      locationData?.map(item => item.invoice?.location?.name).filter(Boolean) || []
-    )];
-
-    productSummaries.push({
-      id: product.id,
-      product_number: product.product_number,
-      name: product.name,
-      category: product.category,
-      last_price: latestPurchase?.[0]?.unit_price || 0,
-      last_purchase_date: latestPurchase?.[0]?.price_date || '',
-      purchase_frequency: purchaseCount || 0,
-      total_spent: totalSpent,
-      pack_sizes: packSizes,
-      locations: locations
+    // Group purchase data by product number
+    const purchaseByProduct = new Map<string, Record<string, unknown>[]>();
+    (purchaseData || []).forEach(item => {
+      if (!purchaseByProduct.has(item.product_number)) {
+        purchaseByProduct.set(item.product_number, []);
+      }
+      purchaseByProduct.get(item.product_number)!.push(item);
     });
-  }
 
-  return productSummaries;
+    // Build summary for each product
+    const productSummaries: ProductSummary[] = [];
+
+    for (const product of products) {
+      const purchases = purchaseByProduct.get(product.product_number) || [];
+      
+      // Skip products with no purchases
+      if (purchases.length === 0) {
+        console.log(`Skipping product ${product.product_number} - no purchase records`);
+        continue;
+      }
+
+      // Calculate summary statistics
+      const totalSpent = purchases.reduce((sum: number, p: Record<string, unknown>) => sum + ((p.extended_price as number) || 0), 0);
+      const packSizes = [...new Set(purchases.map((p: Record<string, unknown>) => p.pack_size as string).filter(Boolean))];
+      const locations = [...new Set(
+        purchases.map((p: Record<string, unknown>) => ((p.invoice as Record<string, unknown>)?.location as Record<string, unknown>)?.name as string).filter(Boolean)
+      )];
+
+      // Calculate price statistics
+      const prices = purchases.map((p: Record<string, unknown>) => (p.unit_price as number) || 0).filter(price => price > 0);
+      const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+      const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+      const avgPrice = prices.length > 0 ? prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length : 0;
+
+      // Get latest purchase info
+      const sortedPurchases = purchases.sort((a: Record<string, unknown>, b: Record<string, unknown>) => 
+        new Date(((b.invoice as Record<string, unknown>)?.invoice_date as string) || 0).getTime() - new Date(((a.invoice as Record<string, unknown>)?.invoice_date as string) || 0).getTime()
+      );
+      const latestPurchase = sortedPurchases[0];
+
+      productSummaries.push({
+        id: product.id,
+        product_number: product.product_number,
+        name: product.name,
+        category: product.category,
+        last_price: (latestPurchase?.unit_price as number) || 0,
+        last_purchase_date: ((latestPurchase?.invoice as Record<string, unknown>)?.invoice_date as string) || '',
+        purchase_frequency: purchases.length,
+        total_spent: totalSpent,
+        pack_sizes: packSizes,
+        locations: locations,
+        min_price: minPrice,
+        max_price: maxPrice,
+        avg_price: avgPrice,
+        price_variance: 0 // Could calculate standard deviation if needed
+      });
+    }
+
+    console.log(`Fallback method returned ${productSummaries.length} products with purchase records`);
+    return productSummaries;
+
+  } catch (error) {
+    console.error('Error in fallback method:', error);
+    return [];
+  }
 }
 
 /**
@@ -199,15 +227,15 @@ export async function getProductPurchaseHistory(
     throw error;
   }
 
-  return (data || []).map(item => ({
-    invoice_date: item.invoice?.invoice_date || '',
-    location_name: item.invoice?.location?.name || '',
-    document_number: item.invoice?.document_number || '',
-    pack_size: item.pack_size,
-    quantity: item.qty_shipped,
-    unit_price: item.unit_price,
-    extended_price: item.extended_price,
-    pricing_unit: item.pricing_unit
+  return (data || []).map((item: Record<string, unknown>) => ({
+    invoice_date: ((item.invoice as Record<string, unknown>)?.invoice_date as string) || '',
+    location_name: (((item.invoice as Record<string, unknown>)?.location as Record<string, unknown>)?.name as string) || '',
+    document_number: ((item.invoice as Record<string, unknown>)?.document_number as string) || '',
+    pack_size: (item.pack_size as string),
+    quantity: (item.qty_shipped as number),
+    unit_price: (item.unit_price as number),
+    extended_price: (item.extended_price as number),
+    pricing_unit: (item.pricing_unit as string)
   }));
 }
 
@@ -240,11 +268,11 @@ export async function getProductPriceTrends(
     throw error;
   }
 
-  return (data || []).map(item => ({
-    date: item.price_date,
-    price: item.unit_price,
-    location: item.location?.name || '',
-    quantity: item.quantity_purchased
+  return (data || []).map((item: Record<string, unknown>) => ({
+    date: (item.price_date as string),
+    price: (item.unit_price as number),
+    location: ((item.location as Record<string, unknown>)?.name as string) || '',
+    quantity: (item.quantity_purchased as number)
   }));
 }
 

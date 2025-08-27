@@ -257,10 +257,10 @@ class CSVParser {
                         
                         resolve({ invoice, items });
                     } catch (error) {
-                        reject(new Error(`Failed to parse ${filePath}: ${error.message}`));
+                        reject(new Error(`Failed to parse ${filePath}: ${(error as Error).message}`));
                     }
                 },
-                error: (error) => {
+                error: (error: Error) => {
                     reject(new Error(`Papa Parse error for ${filePath}: ${error.message}`));
                 }
             });
@@ -558,12 +558,12 @@ async function process360Invoices() {
                     }
                     
                 } catch (error) {
-                    console.error(`❌ Error processing ${file}:`, error.message);
+                    console.error(`❌ Error processing ${file}:`, (error as Error).message);
                     totalErrors++;
                 }
             }
         } catch (error) {
-            console.error(`❌ Error reading directory ${dir}:`, error.message);
+            console.error(`❌ Error reading directory ${dir}:`, (error as Error).message);
         }
     }
     
@@ -598,20 +598,20 @@ async function generateSummaryStats() {
     
     console.log('\n📈 360 Location Summary Statistics:');
     if (invoiceStats?.[0]) {
-        console.log(`💰 Total 360 Invoices: ${invoiceStats[0].count}`);
-        console.log(`💵 Total 360 Amount: $${invoiceStats[0].sum?.toLocaleString() || 0}`);
+        console.log(`💰 Total 360 Invoices: ${(invoiceStats[0] as unknown as Record<string, unknown>).count}`);
+        console.log(`💵 Total 360 Amount: $${((invoiceStats[0] as unknown as Record<string, unknown>).sum as number)?.toLocaleString() || 0}`);
     }
     
     if (productStats) {
         console.log('\n🏷️  Products by Category (All Locations):');
-        productStats.forEach(stat => {
+        productStats.forEach((stat: Record<string, unknown>) => {
             console.log(`   ${stat.category}: ${stat.count} products`);
         });
     }
     
     if (alertStats) {
         console.log('\n⚠️  Active Price Alerts (All Locations):');
-        alertStats.forEach(stat => {
+        alertStats.forEach((stat: Record<string, unknown>) => {
             console.log(`   ${stat.alert_level}: ${stat.count} alerts`);
         });
     }

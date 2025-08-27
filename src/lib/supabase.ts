@@ -89,7 +89,7 @@ export type Database = {
           date_shipped: string | null
           usf_sales_location: string | null
           usf_sales_rep: string | null
-          raw_data: any | null
+          raw_data: Record<string, unknown> | null
           created_at: string
           updated_at: string
         }
@@ -109,7 +109,7 @@ export type Database = {
           date_shipped?: string | null
           usf_sales_location?: string | null
           usf_sales_rep?: string | null
-          raw_data?: any | null
+          raw_data?: Record<string, unknown> | null
           created_at?: string
           updated_at?: string
         }
@@ -129,7 +129,7 @@ export type Database = {
           date_shipped?: string | null
           usf_sales_location?: string | null
           usf_sales_rep?: string | null
-          raw_data?: any | null
+          raw_data?: Record<string, unknown> | null
           created_at?: string
           updated_at?: string
         }

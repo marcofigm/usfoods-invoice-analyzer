@@ -16,7 +16,8 @@ async function testSingleImport() {
     const testFile = '/Users/marcofigueroa/LOS PINOS - USFOODS/INVOICES/BEE CAVES/1/2025031721074257427.csv';
     
     // Import the process-invoices script and test with single file
-    const { default: processInvoices } = await import('./process-invoices.js');
+    const processInvoicesModule = await import('./process-invoices.js');
+    const processInvoices = (processInvoicesModule as Record<string, unknown>).default as () => Promise<void>;
     
     // Test individual components first
     console.log('Testing CSV parsing...');

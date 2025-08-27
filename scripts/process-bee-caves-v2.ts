@@ -175,7 +175,7 @@ class CSVParser {
                                 extended_price: parseFloat(row.ExtendedPrice) || 0,
                                 packing_size: row.PackingSize || '',
                                 pricing_unit: row.PricingUnit || ''
-                            })).filter(item => item.product_number); // Filter out empty rows
+                            })).filter((item: Record<string, unknown>) => item.product_number); // Filter out empty rows
 
                             resolve({ invoice, items });
                         } catch (error: any) {
@@ -273,14 +273,16 @@ class DatabaseImporter {
         const productIds = new Map<string, string>();
         
         for (const item of items) {
+            if (!item.product_number) continue; // Skip items without product number
+            
             // Get or create product
-            let productId = productIds.get(item.product_number);
+            let productId = productIds.get(item.product_number!);
             
             if (!productId) {
                 const { data: existingProduct } = await supabase
                     .from('products')
                     .select('id')
-                    .eq('product_number', item.product_number)
+                    .eq('product_number', item.product_number!)
                     .single();
                 
                 if (existingProduct) {
@@ -293,7 +295,7 @@ class DatabaseImporter {
                     const { data: newProduct, error: productError } = await supabase
                         .from('products')
                         .insert([{
-                            product_number: item.product_number,
+                            product_number: item.product_number!,
                             name: item.product_description,
                             description: item.product_description,
                             category: category,
@@ -304,14 +306,14 @@ class DatabaseImporter {
                         .single();
                     
                     if (productError || !newProduct) {
-                        console.error(`Failed to create product ${item.product_number}:`, productError);
+                        console.error(`Failed to create product ${item.product_number!}:`, productError);
                         continue;
                     }
                     
                     productId = newProduct.id;
                 }
                 
-                productIds.set(item.product_number, productId);
+                productIds.set(item.product_number as string, productId as string);
             }
             
             // Add to processed items
@@ -343,7 +345,7 @@ class DatabaseImporter {
         // Insert price records
         const priceRecords = [];
         for (const item of items) {
-            const productId = productIds.get(item.product_number);
+            const productId = productIds.get(item.product_number!);
             if (productId && item.unit_price > 0) {
                 priceRecords.push({
                     product_id: productId,

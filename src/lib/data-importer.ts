@@ -231,7 +231,7 @@ async function updateProductMasterAndPriceHistory(
             product_number: item.productNumber,
             description: item.productDescription,
             brand: item.productLabel || null,
-            category: category as any,
+            category: category,
             pack_size: item.packingSize,
             unit_type: item.pricingUnit
           })

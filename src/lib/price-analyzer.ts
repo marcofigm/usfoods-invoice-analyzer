@@ -1,4 +1,4 @@
-import { ParsedInvoice, ParsedLineItem } from './csv-parser'
+import { ParsedInvoice } from './csv-parser'
 
 export interface PriceChange {
   productNumber: string
@@ -201,7 +201,7 @@ function calculateProductStats(invoices: ParsedInvoice[]): Map<string, ProductPr
   }
   
   // Calculate statistics
-  for (const [productNumber, stats] of productStats) {
+  for (const [, stats] of productStats) {
     if (stats.prices.length === 0) continue
     
     // Sort prices by date

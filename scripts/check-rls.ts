@@ -59,7 +59,7 @@ async function checkRLS() {
           console.log(`✅ RLS disabled on ${tableName}`);
         }
       } catch (err) {
-        console.log(`⚠️ Could not disable RLS on ${tableName}:`, err.message);
+        console.log(`⚠️ Could not disable RLS on ${tableName}:`, (err as Error).message);
       }
     }
 

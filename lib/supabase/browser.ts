@@ -13,153 +13,147 @@ export const supabase = createClient(
   supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhyaWtmbXh1Y21kenVlZGd2b293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMzYyMTQsImV4cCI6MjA3MTgxMjIxNH0.uXMU6BnnwRQoHVYmpK8arRNK5R1BfVWcRRpARK7RFTs'
 );
 
-// Simple query functions for the product table
+// Optimized query functions using the RPC function
 export async function getProductsSummary() {
   try {
-    console.log('🔍 Loading all products with optimized batch processing v2...');
+    console.log('🔍 Loading products using optimized RPC function...');
     
-    // Get all products
-    const { data: products, error: productsError } = await supabase
-      .from('products')
-      .select('*')
-      .limit(1000); // No artificial limit
-
-    if (productsError) {
-      console.error('❌ Error fetching products:', productsError);
-      return [];
-    }
-
-    console.log('✅ Found', products?.length, 'products');
-
-    if (!products || products.length === 0) {
-      return [];
-    }
-
-    // Get ALL invoice items using pagination to bypass 1000 row limit
-    console.log('📊 Loading all invoice item data with pagination...');
-    
-    let allInvoiceItems = [];
-    let from = 0;
-    const pageSize = 1000;
-    
-    while (true) {
-      const { data: pageData, error: pageError } = await supabase
-        .from('invoice_items')
-        .select('product_number, qty_shipped, unit_price, extended_price, pack_size, pricing_unit')
-        .range(from, from + pageSize - 1);
-      
-      if (pageError) {
-        console.error('❌ Error fetching invoice items page:', pageError);
-        break;
-      }
-      
-      if (!pageData || pageData.length === 0) {
-        break; // No more data
-      }
-      
-      allInvoiceItems.push(...pageData);
-      console.log(`📊 Loaded page: ${allInvoiceItems.length} items so far...`);
-      
-      if (pageData.length < pageSize) {
-        break; // Last page
-      }
-      
-      from += pageSize;
-    }
-    
-    const itemsError = null; // Reset error for the rest of the function
-
-    if (itemsError) {
-      console.error('❌ Error fetching invoice items:', itemsError);
-      return [];
-    }
-
-    console.log('✅ Loaded', allInvoiceItems.length, 'invoice items total via pagination');
-
-    // Group invoice items by product number for fast lookup
-    const itemsByProduct = new Map();
-    allInvoiceItems.forEach(item => {
-      if (!itemsByProduct.has(item.product_number)) {
-        itemsByProduct.set(item.product_number, []);
-      }
-      itemsByProduct.get(item.product_number).push(item);
+    // Use the new RPC function for optimal performance
+    const { data, error } = await supabase.rpc('get_products_summary', {
+      p_category: null,
+      p_location: null,
+      p_date_from: null,
+      p_date_to: null,
+      p_search: null,
+      p_limit: 1000,
+      p_offset: 0
     });
 
-    console.log('🔍 Debug: itemsByProduct map has', itemsByProduct.size, 'unique products');
-    
-    // Debug: Check a few specific products
-    const sampleProduct = products[0];
-    if (sampleProduct) {
-      console.log('🔍 Debug sample product:', sampleProduct.product_number);
-      const sampleItems = itemsByProduct.get(sampleProduct.product_number);
-      console.log('🔍 Sample product items:', sampleItems?.length || 0);
-      if (sampleItems && sampleItems.length > 0) {
-        console.log('🔍 First sample item:', sampleItems[0]);
-      }
+    if (error) {
+      console.error('❌ RPC function error, falling back to manual approach:', error);
+      // Fallback to manual implementation in case of RPC issues
+      return await getProductsSummaryFallback();
     }
 
-    // Debug: Check total of all invoice items we loaded
-    const allItemsTotal = Array.from(itemsByProduct.values())
-      .flat()
-      .reduce((sum, item) => sum + (parseFloat(item.extended_price) || 0), 0);
-    console.log('🔍 Debug: Total from all loaded invoice items:', allItemsTotal);
+    console.log('✅ RPC function returned', data?.length || 0, 'products');
+    
+    if (!data) {
+      return [];
+    }
 
-    // Process all products with the pre-loaded data
-    const productSummaries = products.map(product => {
-      const productItems = itemsByProduct.get(product.product_number) || [];
-      
-      // Debug first few products
-      if (products.indexOf(product) < 3) {
-        console.log(`🔍 Debug product ${product.product_number}: ${productItems.length} items`);
+    // Transform RPC results to match expected format
+    const transformedProducts = data.map((product: Record<string, unknown>) => ({
+      id: product.id as string,
+      product_number: product.product_number as string,
+      name: product.name as string,
+      category: product.category as string,
+      last_price: (product.last_price as number) || 0,
+      last_purchase_date: (product.last_purchase_date as string) || '',
+      purchase_frequency: Number(product.purchase_frequency) || 0,
+      total_spent: (product.total_spent as number) || 0,
+      pack_sizes: (product.pack_sizes as string[])?.length > 0 ? (product.pack_sizes as string[]) : ['N/A'],
+      locations: (product.locations as string[])?.length > 0 ? (product.locations as string[]) : ['Unknown'],
+      min_price: (product.min_price as number) || 0,
+      max_price: (product.max_price as number) || 0,
+      avg_price: (product.avg_price as number) || 0,
+      price_variance: (product.price_variance as number) || 0
+    }));
+
+    console.log('✅ Successfully processed', transformedProducts.length, 'products via RPC');
+    return transformedProducts;
+
+  } catch (error) {
+    console.error('❌ Error in getProductsSummary:', error);
+    console.log('Falling back to manual implementation...');
+    return await getProductsSummaryFallback();
+  }
+}
+
+// Fallback manual implementation (simplified version)
+async function getProductsSummaryFallback() {
+  try {
+    console.log('🔄 Using fallback manual implementation...');
+    
+    // Get products that actually have purchases
+    const { data: productsWithPurchases, error } = await supabase
+      .from('invoice_items')
+      .select(`
+        product_number,
+        product_description,
+        unit_price,
+        extended_price,
+        pack_size,
+        qty_shipped,
+        invoice:invoices!inner(
+          invoice_date,
+          location:locations(name)
+        )
+      `)
+      .limit(1000);
+
+    if (error) {
+      console.error('❌ Error in fallback method:', error);
+      return [];
+    }
+
+    if (!productsWithPurchases) {
+      return [];
+    }
+
+    // Group by product number
+    const productMap = new Map();
+    productsWithPurchases.forEach(item => {
+      const key = item.product_number;
+      if (!productMap.has(key)) {
+        productMap.set(key, {
+          product_number: key,
+          name: item.product_description,
+          items: []
+        });
       }
+      productMap.get(key).items.push(item);
+    });
+
+    // Create summaries
+    const summaries = Array.from(productMap.values()).map(group => {
+      const items = group.items;
+      const totalSpent = items.reduce((sum: number, item: Record<string, unknown>) => sum + ((item.extended_price as number) || 0), 0);
+      const packSizes = [...new Set(items.map((item: Record<string, unknown>) => item.pack_size as string).filter(Boolean))];
+      const locations = [...new Set(items.map((item: Record<string, unknown>) => ((item.invoice as Record<string, unknown>)?.location as Record<string, unknown>)?.name as string).filter(Boolean))];
       
-      // Calculate summary statistics
-      const purchaseCount = productItems.length;
-      const totalSpent = productItems.reduce((sum, item) => {
-        const price = parseFloat(item.extended_price) || 0;
-        return sum + price;
-      }, 0);
-      const lastPrice = parseFloat(productItems[0]?.unit_price) || 0;
-      
-      // Get unique pack sizes
-      const packSizes = [...new Set(productItems.map(item => item.pack_size).filter(Boolean))];
+      // Sort by date to get latest
+      const sortedItems = items.sort((a: Record<string, unknown>, b: Record<string, unknown>) => 
+        new Date((b.invoice as Record<string, unknown>)?.invoice_date as string || 0).getTime() - new Date((a.invoice as Record<string, unknown>)?.invoice_date as string || 0).getTime()
+      );
 
       return {
-        id: product.id,
-        product_number: product.product_number,
-        name: product.name,
-        category: product.category,
-        last_price: lastPrice,
-        last_purchase_date: '', // Will add this back later with proper joins
-        purchase_frequency: purchaseCount,
+        id: group.product_number, // Use product number as ID for fallback
+        product_number: group.product_number,
+        name: group.name,
+        category: 'Unknown', // Would need product table join for category
+        last_price: sortedItems[0]?.unit_price || 0,
+        last_purchase_date: sortedItems[0]?.invoice?.invoice_date || '',
+        purchase_frequency: items.length,
         total_spent: totalSpent,
         pack_sizes: packSizes.length > 0 ? packSizes : ['N/A'],
-        locations: ['Bee Caves', '360'] // Will improve later
+        locations: locations.length > 0 ? locations : ['Unknown']
       };
     });
 
-    // Filter out products with no purchases (optional - you can remove this if you want all products)
-    const productsWithPurchases = productSummaries.filter(p => p.purchase_frequency > 0);
+    console.log('✅ Fallback method processed', summaries.length, 'products');
+    return summaries;
 
-    console.log('✅ Processed', productSummaries.length, 'total products');
-    console.log('✅ Found', productsWithPurchases.length, 'products with purchase data');
-    
-    // Calculate and verify total spending
-    const calculatedTotalSpend = productSummaries.reduce((sum, p) => sum + p.total_spent, 0);
-    console.log('💰 Calculated total spending:', calculatedTotalSpend);
-    
-    // Return all products (including those with 0 purchases) or just those with purchases
-    return productSummaries; // Change to productsWithPurchases if you only want products with purchases
   } catch (error) {
-    console.error('❌ Error in getProductsSummary:', error);
+    console.error('❌ Error in fallback method:', error);
     return [];
   }
 }
 
 export async function getProductPurchaseHistory(productNumber: string) {
   try {
-    console.log('Loading purchase history for:', productNumber);
+    console.log('🔍 Loading REAL purchase history for:', productNumber);
     
+    // Get actual purchase history with proper joins to invoices and locations
     const { data, error } = await supabase
       .from('invoice_items')
       .select(`
@@ -168,31 +162,60 @@ export async function getProductPurchaseHistory(productNumber: string) {
         unit_price,
         extended_price,
         pricing_unit,
-        invoice_id
+        created_at,
+        invoice:invoices!inner(
+          id,
+          document_number,
+          invoice_date,
+          file_name,
+          location:locations(
+            name
+          )
+        )
       `)
       .eq('product_number', productNumber)
-      .limit(50);
+      .limit(500); // Increased from 100 to 500 to show complete history
 
     if (error) {
-      console.error('Error fetching purchase history:', error);
+      console.error('❌ Error fetching purchase history for', productNumber + ':', error);
+      console.error('❌ Full error details:', JSON.stringify(error, null, 2));
       return [];
     }
 
-    console.log('Found', data?.length, 'purchase records for', productNumber);
+    console.log('✅ Found', data?.length, 'REAL purchase records for', productNumber);
 
-    // Return simplified purchase history for now
-    return (data || []).map((item, index) => ({
-      invoice_date: '2024-08-25', // Static date for now
-      location_name: index % 2 === 0 ? 'Bee Caves' : '360', // Alternate locations
-      document_number: `INV-${item.invoice_id || '12345'}`,
-      pack_size: item.pack_size,
-      quantity: item.qty_shipped,
-      unit_price: item.unit_price,
-      extended_price: item.extended_price,
-      pricing_unit: item.pricing_unit
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Transform to the expected format with real data
+    const purchaseHistory = data.map((item: Record<string, unknown>) => ({
+      invoice_date: ((item.invoice as Record<string, unknown>)?.invoice_date as string) || '',
+      location_name: (((item.invoice as Record<string, unknown>)?.location as Record<string, unknown>)?.name as string) || 'Unknown',
+      document_number: ((item.invoice as Record<string, unknown>)?.file_name as string) || ((item.invoice as Record<string, unknown>)?.document_number as string) || 'Unknown',
+      pack_size: (item.pack_size as string) || 'N/A',
+      quantity: (item.qty_shipped as number) || 0,
+      unit_price: (item.unit_price as number) || 0,
+      extended_price: (item.extended_price as number) || 0,
+      pricing_unit: (item.pricing_unit as string) || 'EA'
     }));
+
+    // Sort chronologically (oldest to newest) for proper price change calculations
+    const sortedHistory = purchaseHistory.sort((a, b) => 
+      new Date(a.invoice_date).getTime() - new Date(b.invoice_date).getTime()
+    );
+
+    console.log('✅ Returning', sortedHistory.length, 'chronologically sorted purchase records');
+    console.log('📅 Date range:', 
+      sortedHistory[0]?.invoice_date, 
+      'to', 
+      sortedHistory[sortedHistory.length - 1]?.invoice_date
+    );
+
+    return sortedHistory;
+
   } catch (error) {
-    console.error('Error in getProductPurchaseHistory:', error);
+    console.error('❌ Error in getProductPurchaseHistory:', error);
     return [];
   }
 }

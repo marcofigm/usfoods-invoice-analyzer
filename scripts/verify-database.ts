@@ -129,7 +129,7 @@ async function verifyDatabase() {
 
       console.log(`✅ Found ${invoiceItems?.length || 0} invoice items for product ${product.product_number}`);
       invoiceItems?.forEach((item, i) => {
-        console.log(`  ${i + 1}. $${item.unit_price} x ${item.qty_shipped} = $${item.extended_price} (${item.invoice?.location?.name})`);
+        console.log(`  ${i + 1}. $${(item as Record<string, unknown>).unit_price} x ${(item as Record<string, unknown>).qty_shipped} = $${(item as Record<string, unknown>).extended_price} (${((item as Record<string, unknown>).invoice as Record<string, unknown>)?.location ? (((item as Record<string, unknown>).invoice as Record<string, unknown>).location as Record<string, unknown>).name : 'Unknown'})`);
       });
     }
 

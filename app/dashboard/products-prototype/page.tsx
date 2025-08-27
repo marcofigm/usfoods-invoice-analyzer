@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 // Temporarily disabled - causing Supabase connection errors
 // import { 
 //   getProductsSummary, 
@@ -29,41 +29,7 @@ export default function ProductsPrototypePage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
 
-  // Load initial data
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  // Load products when filters change
-  useEffect(() => {
-    loadProducts();
-  }, [searchTerm, selectedCategory, selectedLocation]);
-
-  const loadInitialData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Mock data temporarily
-      const categoriesData = ['Protein', 'Dairy', 'Produce', 'Dry Goods'];
-      const locationsData = [
-        { id: '1', name: 'Bee Caves', restaurant_id: '1', address_line1: '', city: '', state: '', postal_code: '', phone: '', created_at: '' },
-        { id: '2', name: '360', restaurant_id: '1', address_line1: '', city: '', state: '', postal_code: '', phone: '', created_at: '' }
-      ];
-
-      setCategories(categoriesData);
-      setLocations(locationsData);
-      
-      await loadProducts();
-    } catch (err) {
-      console.error('Error loading initial data:', err);
-      setError('Failed to load data. Please check console for details.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     try {
       // Mock products data temporarily
       const mockProducts: ProductSummary[] = [
@@ -98,7 +64,41 @@ export default function ProductsPrototypePage() {
       console.error('Error loading products:', err);
       setError('Failed to load products');
     }
-  };
+  }, []);
+
+  const loadInitialData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Mock data temporarily
+      const categoriesData = ['Protein', 'Dairy', 'Produce', 'Dry Goods'];
+      const locationsData = [
+        { id: '1', name: 'Bee Caves', restaurant_id: '1', address_line1: '', city: '', state: '', postal_code: '', phone: '', created_at: '' },
+        { id: '2', name: '360', restaurant_id: '1', address_line1: '', city: '', state: '', postal_code: '', phone: '', created_at: '' }
+      ];
+
+      setCategories(categoriesData);
+      setLocations(locationsData);
+      
+      await loadProducts();
+    } catch (err) {
+      console.error('Error loading initial data:', err);
+      setError('Failed to load data. Please check console for details.');
+    } finally {
+      setLoading(false);
+    }
+  }, [loadProducts]);
+
+  // Load initial data
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  // Load products when filters change
+  useEffect(() => {
+    loadProducts();
+  }, [searchTerm, selectedCategory, selectedLocation, loadProducts]);
 
   const handleProductClick = async (product: ProductSummary) => {
     try {
