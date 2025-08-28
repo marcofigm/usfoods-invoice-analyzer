@@ -13,9 +13,8 @@ import {
   TrendingUp, 
   AlertTriangle,
   MapPin,
-  Calendar,
   Target,
-  Activity,
+  TrendingUp as TrendingUpIcon,
   Eye,
   ArrowUpRight,
   ArrowDownRight,
@@ -39,9 +38,11 @@ import type {
   PriceAlert,
   LocationComparison,
   MonthlySpendTrend,
-  RecentActivity
+  PriceIncrease,
+  PackSizeChange
 } from '@/lib/supabase/analytics-simple';
 import { ProductDetailModal } from '@/components/ProductDetailModal';
+import { CategoryDetailModal } from '@/components/CategoryDetailModal';
 import type { ProductSummary } from '@/lib/supabase/types';
 import { getProductsSummary, supabase } from '@/lib/supabase/browser';
 
@@ -52,10 +53,14 @@ export default function DashboardPage() {
   const [priceAlerts, setPriceAlerts] = useState<PriceAlert[]>([]);
   const [locationComparison, setLocationComparison] = useState<LocationComparison[]>([]);
   const [monthlyTrends, setMonthlyTrends] = useState<MonthlySpendTrend[]>([]);
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [priceIncreases, setPriceIncreases] = useState<PriceIncrease[]>([]);
+  const [packSizeChanges, setPackSizeChanges] = useState<PackSizeChange[]>([]);
+  const [products, setProducts] = useState<ProductSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<ProductSummary | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [categoryProducts, setCategoryProducts] = useState<ProductSummary[]>([]);
 
   useEffect(() => {
     loadDashboardData();
@@ -76,6 +81,9 @@ export default function DashboardPage() {
         setError('No product data available');
         return;
       }
+
+      // Store products in state for use in UI
+      setProducts(products);
       
       console.log('✅ Loaded', products.length, 'products');
       console.log('Sample product data:', products[0]);
@@ -99,67 +107,70 @@ export default function DashboardPage() {
         avgProductsPerInvoice: 0
       };
       
-      // Category spending
-      const categoryMap = new Map<string, { total: number; count: number }>();
-      let grandTotal = 0;
+      // Category spending - use actual invoice totals allocated proportionally
+      console.log('🔧 Calculating category spending using invoice totals...');
+      
+      // First get line item totals by category (for proportional allocation)
+      const categoryLineItemMap = new Map<string, { lineItemTotal: number; count: number }>();
+      let totalLineItems = 0;
+      
       products.forEach((product: ProductSummary) => {
         const category = product.category || 'Unknown';
         const spend = product.total_spent || 0;
         
-        if (!categoryMap.has(category)) {
-          categoryMap.set(category, { total: 0, count: 0 });
+        if (!categoryLineItemMap.has(category)) {
+          categoryLineItemMap.set(category, { lineItemTotal: 0, count: 0 });
         }
-        categoryMap.get(category)!.total += spend;
-        categoryMap.get(category)!.count += 1;
-        grandTotal += spend;
+        categoryLineItemMap.get(category)!.lineItemTotal += spend;
+        categoryLineItemMap.get(category)!.count += 1;
+        totalLineItems += spend;
       });
+      
+      // Allocate actual invoice totals proportionally to categories
+      const categoryMap = new Map<string, { total: number; count: number }>();
+      categoryLineItemMap.forEach((data, category) => {
+        const proportion = totalLineItems > 0 ? data.lineItemTotal / totalLineItems : 0;
+        const allocatedTotal = actualTotalSpend * proportion;
+        categoryMap.set(category, {
+          total: allocatedTotal,
+          count: data.count
+        });
+      });
+      
+      console.log('✅ Line items total:', totalLineItems.toLocaleString());
+      console.log('✅ Invoice total:', actualTotalSpend.toLocaleString());
+      console.log('✅ Allocation factor:', actualTotalSpend / totalLineItems);
       
       const categoryData: SpendingByCategory[] = Array.from(categoryMap.entries()).map(([category, data]) => ({
         category,
         total_spend: data.total,
         product_count: data.count,
-        percentage: grandTotal > 0 ? (data.total / grandTotal) * 100 : 0
+        percentage: actualTotalSpend > 0 ? (data.total / actualTotalSpend) * 100 : 0
       })).sort((a, b) => b.total_spend - a.total_spend);
       
-      // FIXED: Use direct query results for consistency with modal
-      console.log('🔧 Creating corrected top products using direct query totals...');
-      const topProductsData: TopSpendingProducts[] = [];
+      // Use the products data we already have sorted by total_spent
+      console.log('🔧 Getting top spending products from loaded product data...');
+      const finalTopProducts: TopSpendingProducts[] = products
+        .filter((product: ProductSummary) => product.total_spent > 0) // Only products with spending
+        .sort((a: ProductSummary, b: ProductSummary) => b.total_spent - a.total_spent) // Sort by total spend desc
+        .slice(0, 8) // Take top 8
+        .map((product: ProductSummary) => ({
+          product_number: product.product_number,
+          name: product.name,
+          category: product.category,
+          total_spend: product.total_spent,
+          purchase_frequency: product.purchase_frequency,
+          avg_price: product.avg_price,
+          last_purchase_date: product.last_purchase_date
+        }));
       
-      // Get corrected totals for top products using same method as modal
-      for (const product of products.slice(0, 20)) { // Check top 20 from RPC
-        try {
-          const { data: directData } = await supabase
-            .from('invoice_items')
-            .select('extended_price, unit_price, invoice:invoices!inner(invoice_date)')
-            .eq('product_number', product.product_number)
-            .limit(500); // Same limit as purchase history
-            
-          if (directData && directData.length > 0) {
-            const correctedTotal = directData.reduce((sum, item) => sum + (item.extended_price || 0), 0);
-            const correctedCount = directData.length;
-            const prices = directData.map(item => item.unit_price).filter(p => p > 0);
-            const avgPrice = prices.length > 0 ? prices.reduce((sum, p) => sum + p, 0) / prices.length : 0;
-            
-            topProductsData.push({
-              product_number: product.product_number,
-              name: product.name,
-              category: product.category,
-              total_spend: correctedTotal, // CORRECTED DATA matching modal
-              purchase_frequency: correctedCount, // CORRECTED DATA matching modal
-              avg_price: avgPrice,
-              last_purchase_date: product.last_purchase_date
-            });
-          }
-        } catch {
-          console.log('Error getting corrected total for', product.product_number);
-        }
+      console.log('✅ Top spending products:', finalTopProducts.length, 'found');
+      if (finalTopProducts.length > 0) {
+        console.log('✅ Top product:', finalTopProducts[0]?.name, 'spend:', finalTopProducts[0]?.total_spend?.toLocaleString());
+        console.log('✅ All top products:', finalTopProducts.map(p => ({ name: p.name, spend: p.total_spend })));
+      } else {
+        console.warn('⚠️ No top products found - check if products have total_spent > 0');
       }
-      
-      // Sort by corrected totals and take top 8
-      topProductsData.sort((a, b) => b.total_spend - a.total_spend);
-      const finalTopProducts = topProductsData.slice(0, 8);
-      
-      console.log('✅ Corrected top product:', finalTopProducts[0]?.product_number, 'spend:', finalTopProducts[0]?.total_spend);
       
       // Get actual price alerts from database
       const { data: dbAlerts } = await supabase
@@ -239,19 +250,10 @@ export default function DashboardPage() {
         });
       }
       
-      const activityData: RecentActivity[] = products
-        .filter((p: ProductSummary) => p.last_purchase_date)
-        .sort((a: ProductSummary, b: ProductSummary) => new Date(b.last_purchase_date).getTime() - new Date(a.last_purchase_date).getTime())
-        .slice(0, 6)
-        .map((product: ProductSummary, index: number) => ({
-          invoice_date: product.last_purchase_date,
-          location_name: product.locations[0] || 'Unknown',
-          document_number: `INV${Date.now() + index}`,
-          net_amount: Math.round(product.total_spent * 0.1),
-          total_items: Math.round(5 + Math.random() * 15),
-          unique_products: Math.round(3 + Math.random() * 8),
-          processing_status: 'processed'
-        }));
+      // Get segmented price analysis (real increases + pack size changes)
+      console.log('📈 Getting segmented price analysis...');
+      const { getCombinedPriceAnalysis } = await import('@/lib/supabase/analytics-simple');
+      const { increases: increaseData, packChanges: packChangeData } = await getCombinedPriceAnalysis();
 
       setMetrics(metricsData);
       setCategorySpending(categoryData.slice(0, 6)); // Top 6 categories
@@ -259,7 +261,8 @@ export default function DashboardPage() {
       setPriceAlerts(alertsData.slice(0, 5)); // Top 5 alerts
       setLocationComparison(locationsData);
       setMonthlyTrends(trendsData);
-      setRecentActivity(activityData);
+      setPriceIncreases(increaseData);
+      setPackSizeChanges(packChangeData);
       
       console.log('✅ Dashboard data loaded successfully');
     } catch (err) {
@@ -310,6 +313,26 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('❌ Error finding product data:', error);
+    }
+  };
+
+  // Handle category click to show products in that category
+  const handleCategoryClick = async (categoryData: SpendingByCategory) => {
+    try {
+      console.log('🔍 Loading products for category:', categoryData.category);
+      
+      // Get all products and filter by category
+      const allProducts = await getProductsSummary();
+      const productsInCategory = allProducts.filter(
+        (product: ProductSummary) => product.category === categoryData.category
+      );
+      
+      console.log('✅ Found', productsInCategory.length, 'products in category', categoryData.category);
+      
+      setCategoryProducts(productsInCategory);
+      setSelectedCategory(categoryData.category);
+    } catch (error) {
+      console.error('❌ Error loading category products:', error);
     }
   };
 
@@ -380,7 +403,7 @@ export default function DashboardPage() {
             size="sm"
             className="bg-white text-gray-600 hover:bg-gray-50"
           >
-            <Activity className="h-4 w-4 mr-1" />
+            <Target className="h-4 w-4 mr-1" />
             Refresh
           </Button>
         </div>
@@ -518,9 +541,15 @@ export default function DashboardPage() {
           {/* Category Spending Breakdown */}
           <Card className="bg-white">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BarChart3 className="h-5 w-5 text-green-600" />
-                <span>Spending by Category</span>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <BarChart3 className="h-5 w-5 text-green-600" />
+                  <span>Spending by Category</span>
+                </div>
+                <div className="text-xs text-gray-500 flex items-center space-x-1">
+                  <Eye className="h-3 w-3" />
+                  <span>Click to view products • Totals match dashboard spend</span>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -539,6 +568,8 @@ export default function DashboardPage() {
                       }
                       labelLine={false}
                       fontSize={12}
+                      onClick={handleCategoryClick}
+                      style={{ cursor: 'pointer' }}
                     >
                       {categorySpending.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
@@ -616,7 +647,16 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {topProducts.map((product, index) => (
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-gray-500">Loading products...</div>
+                  </div>
+                ) : topProducts.length === 0 ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-gray-500">No spending data available</div>
+                  </div>
+                ) : (
+                  topProducts.map((product, index) => (
                   <div 
                     key={index} 
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors border border-transparent hover:border-orange-200"
@@ -644,48 +684,131 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   </div>
-                ))}
+                ))
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Recent Activity */}
+          {/* Price Increases - Segmented Analysis */}
           <Card className="bg-white">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Activity className="h-5 w-5 text-blue-600" />
-                <span>Recent Activity</span>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <TrendingUpIcon className="h-5 w-5 text-red-600" />
+                  <span>Price Increases</span>
+                </div>
+                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                  Same Pack Size Only
+                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4 text-blue-600" />
-                        <span className="font-medium text-gray-900">
-                          {formatDate(activity.invoice_date)}
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {activity.location_name}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {activity.total_items} items • {activity.unique_products} unique products
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-gray-900">
-                        {formatCurrency(activity.net_amount)}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {activity.document_number.split('.')[0].slice(-8)}
-                      </div>
-                    </div>
+                {priceIncreases.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <TrendingUpIcon className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                    <p>No real price increases found</p>
+                    <p className="text-sm mt-1">Products with &gt;5% increases (same pack) will appear here</p>
                   </div>
-                ))}
+                ) : (
+                  priceIncreases.map((increase, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100 cursor-pointer hover:bg-red-100 transition-colors"
+                         onClick={() => {
+                           const product = products.find(p => p.product_number === increase.product_number);
+                           if (product) setSelectedProduct(product);
+                         }}>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <Package className="h-4 w-4 text-red-600" />
+                          <span className="font-medium text-gray-900">
+                            {increase.name.length > 25 ? `${increase.name.substring(0, 25)}...` : increase.name}
+                          </span>
+                          <Badge variant="outline" className="text-xs">
+                            {increase.category}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className="text-xs text-gray-500">
+                            {increase.product_number}
+                          </span>
+                          <span className="text-xs text-gray-500">•</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {increase.pack_size}
+                          </Badge>
+                          <span className="text-xs text-gray-500">•</span>
+                          <span className="text-xs text-gray-500">
+                            {increase.purchase_frequency} orders
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center space-x-1">
+                          <ArrowUpRight className="h-4 w-4 text-red-600" />
+                          <span className="font-bold text-red-600">
+                            +{increase.price_increase_percent.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {formatCurrency(increase.previous_price)} → {formatCurrency(increase.current_price)}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          +{formatCurrency(increase.price_increase)}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
+
+              {/* Pack Size Changes Section */}
+              {packSizeChanges.length > 0 && (
+                <>
+                  <hr className="my-4" />
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Package className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-gray-700">Pack Size Changes</span>
+                      <Badge variant="secondary" className="text-xs">
+                        New Options
+                      </Badge>
+                    </div>
+                    {packSizeChanges.map((change, index) => (
+                      <div key={index} className="p-3 bg-blue-50 rounded-lg border border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors"
+                           onClick={() => {
+                             const product = products.find(p => p.product_number === change.product_number);
+                             if (product) setSelectedProduct(product);
+                           }}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-gray-900">
+                                {change.name.length > 30 ? `${change.name.substring(0, 30)}...` : change.name}
+                              </span>
+                              <Badge variant="outline" className="text-xs">
+                                {change.category}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <span className="text-xs text-gray-500">
+                                {change.product_number}
+                              </span>
+                              <span className="text-xs text-gray-500">•</span>
+                              <span className="text-xs text-blue-600">
+                                {change.pack_sizes.length} pack options
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right text-xs text-gray-600">
+                            <div>Best Value: {change.best_value_pack}</div>
+                            <div>Current: {change.current_pack}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -738,6 +861,24 @@ export default function DashboardPage() {
             product={selectedProduct}
             isOpen={!!selectedProduct}
             onClose={() => setSelectedProduct(null)}
+          />
+        )}
+
+        {/* Category Detail Modal */}
+        {selectedCategory && (
+          <CategoryDetailModal
+            category={selectedCategory}
+            products={categoryProducts}
+            isOpen={!!selectedCategory}
+            onClose={() => {
+              setSelectedCategory(null);
+              setCategoryProducts([]);
+            }}
+            onProductClick={(product) => {
+              setSelectedProduct(product);
+              setSelectedCategory(null);
+              setCategoryProducts([]);
+            }}
           />
         )}
       </div>

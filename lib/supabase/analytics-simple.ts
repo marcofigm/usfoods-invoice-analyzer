@@ -1,4 +1,4 @@
-import { getProductsSummary } from './browser';
+import { getProductsSummary, supabase } from './browser';
 import type { ProductSummary } from './types';
 
 // Simplified dashboard analytics that work with existing data structures
@@ -58,6 +58,38 @@ export interface MonthlySpendTrend {
   invoice_count: number;
   avg_invoice_value: number;
   unique_products: number;
+}
+
+export interface PriceIncrease {
+  product_number: string;
+  name: string;
+  category: string;
+  pack_size: string;
+  current_price: number;
+  previous_price: number;
+  price_increase: number;
+  price_increase_percent: number;
+  last_purchase_date: string;
+  location_name: string;
+  purchase_frequency: number;
+  analysis_type: 'same_pack_increase' | 'pack_size_change';
+}
+
+export interface PackSizeChange {
+  product_number: string;
+  name: string;
+  category: string;
+  pack_sizes: string[];
+  current_pack: string;
+  current_price: number;
+  per_unit_comparison: {
+    pack_size: string;
+    unit_price: number;
+    per_unit_price: number;
+  }[];
+  best_value_pack: string;
+  last_purchase_date: string;
+  location_name: string;
 }
 
 export interface RecentActivity {
@@ -339,6 +371,205 @@ export async function getMonthlySpendTrends(months: number = 12): Promise<Monthl
   } catch (error) {
     console.error('❌ Error getting monthly trends:', error);
     throw error;
+  }
+}
+
+// Get products with segmented price analysis (same pack size increases)
+export async function getPriceIncreases(limit: number = 6): Promise<PriceIncrease[]> {
+  try {
+    console.log('📈 Getting segmented price increases...');
+    
+    // Get detailed invoice items for proper analysis
+    const { data: invoiceItems, error } = await supabase
+      .from('invoice_items')
+      .select(`
+        product_number,
+        product_description,
+        pack_size,
+        unit_price,
+        qty_shipped,
+        extended_price,
+        invoice:invoices!inner(
+          invoice_date,
+          location:locations(name)
+        )
+      `);
+
+    if (error) {
+      console.error('❌ Error fetching invoice items for price analysis:', error);
+      return [];
+    }
+
+    if (!invoiceItems || invoiceItems.length === 0) {
+      return [];
+    }
+
+    // Group by product + pack size combination
+    const productPackMap = new Map<string, Record<string, unknown>[]>();
+    
+    invoiceItems.forEach((item) => {
+      const key = `${item.product_number}|${item.pack_size}`;
+      if (!productPackMap.has(key)) {
+        productPackMap.set(key, []);
+      }
+      productPackMap.get(key)!.push(item);
+    });
+
+    const priceIncreases: PriceIncrease[] = [];
+
+    // Analyze each product+pack combination
+    productPackMap.forEach((items, key) => {
+      const [productNumber, packSize] = key.split('|');
+      
+      // Need at least 2 data points to detect a trend
+      if (items.length < 2) return;
+
+      // Sort by date to get chronological order
+      const sortedItems = items.sort((a, b) => 
+        new Date(((a as Record<string, unknown>).invoice as Record<string, unknown>).invoice_date as string).getTime() - 
+        new Date(((b as Record<string, unknown>).invoice as Record<string, unknown>).invoice_date as string).getTime()
+      );
+
+      const firstItem = sortedItems[0] as Record<string, unknown>;
+      const lastItem = sortedItems[sortedItems.length - 1] as Record<string, unknown>;
+      const firstPrice = (firstItem.unit_price as number) || 0;
+      const lastPrice = (lastItem.unit_price as number) || 0;
+
+      // Calculate price increase within same pack size
+      if (firstPrice > 0 && lastPrice > firstPrice) {
+        const priceIncrease = lastPrice - firstPrice;
+        const priceIncreasePercent = (priceIncrease / firstPrice) * 100;
+
+        // Only include significant increases (>5%)
+        if (priceIncreasePercent > 5) {
+          priceIncreases.push({
+            product_number: productNumber,
+            name: (firstItem.product_description as string) || 'Unknown Product',
+            category: 'Other', // Will need to get category from products table separately
+            pack_size: packSize || 'N/A',
+            current_price: lastPrice,
+            previous_price: firstPrice,
+            price_increase: priceIncrease,
+            price_increase_percent: priceIncreasePercent,
+            last_purchase_date: ((lastItem.invoice as Record<string, unknown>)?.invoice_date as string) || '',
+            location_name: (((lastItem.invoice as Record<string, unknown>)?.location as Record<string, unknown>)?.name as string) || 'Multiple',
+            purchase_frequency: items.length,
+            analysis_type: 'same_pack_increase'
+          });
+        }
+      }
+    });
+
+    // Sort by percentage increase (highest first)
+    const sortedIncreases = priceIncreases
+      .sort((a, b) => b.price_increase_percent - a.price_increase_percent)
+      .slice(0, limit);
+
+    console.log(`✅ Found ${sortedIncreases.length} real price increases (same pack size)`);
+    return sortedIncreases;
+  } catch (error) {
+    console.error('❌ Error getting segmented price increases:', error);
+    throw error;
+  }
+}
+
+// Get products with pack size changes
+export async function getPackSizeChanges(limit: number = 3): Promise<PackSizeChange[]> {
+  try {
+    console.log('📦 Getting pack size changes...');
+    
+    const products = await getProductsSummary();
+    if (!products || products.length === 0) {
+      return [];
+    }
+
+    const packSizeChanges: PackSizeChange[] = [];
+
+    products.forEach((product: ProductSummary) => {
+      // Only products with multiple pack sizes
+      if (product.pack_sizes && product.pack_sizes.length > 1) {
+        // Calculate per-unit prices for comparison
+        const perUnitComparison = product.pack_sizes.map(packSize => {
+          const units = parsePackSizeUnits(packSize);
+          // Use average price as approximation
+          const unitPrice = product.avg_price || product.last_price || 0;
+          return {
+            pack_size: packSize,
+            unit_price: unitPrice,
+            per_unit_price: units > 0 ? unitPrice / units : unitPrice
+          };
+        });
+
+        // Find best value pack (lowest per-unit price)
+        const bestValuePack = perUnitComparison.reduce((best, current) => 
+          current.per_unit_price < best.per_unit_price ? current : best
+        );
+
+        packSizeChanges.push({
+          product_number: product.product_number,
+          name: product.name,
+          category: product.category,
+          pack_sizes: product.pack_sizes,
+          current_pack: product.pack_sizes[product.pack_sizes.length - 1], // Last pack size
+          current_price: product.last_price,
+          per_unit_comparison: perUnitComparison,
+          best_value_pack: bestValuePack.pack_size,
+          last_purchase_date: product.last_purchase_date,
+          location_name: product.locations[0] || 'Multiple'
+        });
+      }
+    });
+
+    // Sort by number of pack sizes (most variety first)
+    const sortedChanges = packSizeChanges
+      .sort((a, b) => b.pack_sizes.length - a.pack_sizes.length)
+      .slice(0, limit);
+
+    console.log(`✅ Found ${sortedChanges.length} products with pack size changes`);
+    return sortedChanges;
+  } catch (error) {
+    console.error('❌ Error getting pack size changes:', error);
+    throw error;
+  }
+}
+
+// Helper function to parse pack sizes into unit counts
+function parsePackSizeUnits(packSize: string): number {
+  if (!packSize) return 1;
+  
+  const normalized = packSize.toLowerCase();
+  
+  // Pattern: "6/16.5 OZ" or "10/100 EA"
+  const slashPattern = /^(\d+)\s*\/\s*(\d+(?:\.\d+)?)\s*/;
+  const slashMatch = normalized.match(slashPattern);
+  if (slashMatch) {
+    return parseInt(slashMatch[1]) * parseFloat(slashMatch[2]);
+  }
+  
+  // Pattern: "100 EA" or "25 LB"
+  const simplePattern = /^(\d+(?:\.\d+)?)\s/;
+  const simpleMatch = normalized.match(simplePattern);
+  if (simpleMatch) {
+    return parseFloat(simpleMatch[1]);
+  }
+  
+  return 1;
+}
+
+// Get combined price analysis (increases + pack changes)
+export async function getCombinedPriceAnalysis(): Promise<{ increases: PriceIncrease[], packChanges: PackSizeChange[] }> {
+  try {
+    console.log('🔍 Getting combined price analysis...');
+    
+    const [increases, packChanges] = await Promise.all([
+      getPriceIncreases(6),
+      getPackSizeChanges(3)
+    ]);
+    
+    return { increases, packChanges };
+  } catch (error) {
+    console.error('❌ Error getting combined price analysis:', error);
+    return { increases: [], packChanges: [] };
   }
 }
 
