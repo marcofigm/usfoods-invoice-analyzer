@@ -343,8 +343,8 @@ export async function getLocationComparison(): Promise<LocationComparison[]> {
     const locationProductCounts = new Map<string, Set<string>>();
     if (!itemsError && invoiceItems) {
       invoiceItems.forEach((item) => {
-        const invoice = item.invoice as Record<string, unknown>;
-        const location = invoice?.location as Record<string, unknown>;
+        const invoice = item.invoice as unknown as Record<string, unknown> | undefined;
+        const location = invoice?.location as unknown as Record<string, unknown> | undefined;
         const locationName = (location?.name as string) || 'Unknown';
         
         if (!locationProductCounts.has(locationName)) {
