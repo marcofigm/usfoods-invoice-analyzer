@@ -202,53 +202,15 @@ export default function DashboardPage() {
       
       console.log('📊 Loaded', alertsData.length, 'actual price alerts from database');
       
-      // Location comparison from products
-      const locationMap = new Map<string, { total_spend: number; product_count: number; latest_date: string; }>();
-      products.forEach((product: ProductSummary) => {
-        product.locations.forEach(location => {
-          if (!locationMap.has(location)) {
-            locationMap.set(location, { total_spend: 0, product_count: 0, latest_date: '' });
-          }
-          const loc = locationMap.get(location)!;
-          loc.total_spend += product.total_spent;
-          loc.product_count += 1;
-          if (product.last_purchase_date > loc.latest_date) {
-            loc.latest_date = product.last_purchase_date;
-          }
-        });
-      });
+      // Get REAL location comparison from actual invoice data
+      console.log('📍 Getting REAL location performance from invoices...');
+      const { getLocationComparison } = await import('@/lib/supabase/analytics-simple');
+      const locationsData = await getLocationComparison();
       
-      const locationsData: LocationComparison[] = Array.from(locationMap.entries()).map(([location_name, data]) => ({
-        location_name,
-        total_spend: data.total_spend,
-        total_invoices: Math.round(data.product_count * 2.5),
-        avg_invoice_value: data.total_spend / Math.max(1, Math.round(data.product_count * 2.5)),
-        unique_products: data.product_count,
-        last_invoice_date: data.latest_date
-      }));
-      
-      // Mock monthly trends and activity (same as before)
-      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-      const currentDate = new Date();
-      const trendsData: MonthlySpendTrend[] = [];
-      const totalSpend = metricsData.totalSpend;
-      
-      for (let i = 11; i >= 0; i--) {
-        const date = new Date(currentDate);
-        date.setMonth(date.getMonth() - i);
-        const variation = 0.7 + (Math.random() * 0.6);
-        const monthlySpend = (totalSpend / 14) * variation;
-        
-        trendsData.push({
-          year: date.getFullYear(),
-          month: date.getMonth() + 1,
-          month_name: monthNames[date.getMonth()],
-          total_spend: monthlySpend,
-          invoice_count: Math.round(20 + Math.random() * 15),
-          avg_invoice_value: monthlySpend / Math.max(1, Math.round(20 + Math.random() * 15)),
-          unique_products: Math.round(products.length * (0.6 + Math.random() * 0.3))
-        });
-      }
+      // Get REAL monthly trends from actual invoice data
+      console.log('📊 Getting REAL monthly trends from invoices...');
+      const { getMonthlySpendTrends } = await import('@/lib/supabase/analytics-simple');
+      const trendsData = await getMonthlySpendTrends(12);
       
       // Get segmented price analysis (real increases + pack size changes)
       console.log('📈 Getting segmented price analysis...');

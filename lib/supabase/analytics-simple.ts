@@ -273,56 +273,112 @@ export async function getPriceAlerts(threshold: number = 15): Promise<PriceAlert
   }
 }
 
-// Mock data for features that need more complex queries
+// Get REAL location performance from actual invoice data
 export async function getLocationComparison(): Promise<LocationComparison[]> {
   try {
-    console.log('🏪 Getting location comparison...');
+    console.log('🏪 Getting REAL location performance from invoice data...');
     
-    const products = await getProductsSummary();
-    if (!products || products.length === 0) {
+    // Get actual invoices from database with location joins
+    const { data: invoices, error } = await supabase
+      .from('invoices')
+      .select(`
+        net_amount,
+        invoice_date,
+        location:locations!inner(name)
+      `)
+      .order('invoice_date');
+
+    if (error) {
+      console.error('❌ Error fetching invoices for location comparison:', error);
       return [];
     }
 
-    // Group by locations
-    const locationMap = new Map<string, {
+    if (!invoices || invoices.length === 0) {
+      console.log('⚠️ No invoices found for location comparison');
+      return [];
+    }
+
+    // Group by location
+    const locationStats = new Map<string, {
       total_spend: number;
-      product_count: number;
-      latest_date: string;
+      invoice_count: number;
+      last_invoice_date: string;
+      invoice_dates: string[];
     }>();
 
-    products.forEach((product: ProductSummary) => {
-      product.locations.forEach(location => {
-        if (!locationMap.has(location)) {
-          locationMap.set(location, {
-            total_spend: 0,
-            product_count: 0,
-            latest_date: ''
-          });
-        }
-
-        const loc = locationMap.get(location)!;
-        loc.total_spend += product.total_spent;
-        loc.product_count += 1;
-        
-        if (product.last_purchase_date > loc.latest_date) {
-          loc.latest_date = product.last_purchase_date;
-        }
-      });
+    invoices.forEach((invoice) => {
+      const location = invoice.location as unknown;
+      const locationName = ((location as Record<string, unknown>)?.name as string) || 'Unknown';
+      
+      if (!locationStats.has(locationName)) {
+        locationStats.set(locationName, {
+          total_spend: 0,
+          invoice_count: 0,
+          last_invoice_date: '',
+          invoice_dates: []
+        });
+      }
+      
+      const stats = locationStats.get(locationName)!;
+      stats.total_spend += (invoice.net_amount as number) || 0;
+      stats.invoice_count += 1;
+      stats.invoice_dates.push(invoice.invoice_date as string);
+      
+      // Track latest invoice date
+      if ((invoice.invoice_date as string) > stats.last_invoice_date) {
+        stats.last_invoice_date = invoice.invoice_date as string;
+      }
     });
 
-    const result = Array.from(locationMap.entries()).map(([location_name, data]) => ({
+    // Get product count per location from invoice items (for unique products estimate)
+    const { data: invoiceItems, error: itemsError } = await supabase
+      .from('invoice_items')
+      .select(`
+        product_number,
+        invoice:invoices!inner(
+          location:locations!inner(name)
+        )
+      `);
+
+    const locationProductCounts = new Map<string, Set<string>>();
+    if (!itemsError && invoiceItems) {
+      invoiceItems.forEach((item) => {
+        const invoice = item.invoice as Record<string, unknown>;
+        const location = invoice?.location as Record<string, unknown>;
+        const locationName = (location?.name as string) || 'Unknown';
+        
+        if (!locationProductCounts.has(locationName)) {
+          locationProductCounts.set(locationName, new Set());
+        }
+        
+        locationProductCounts.get(locationName)!.add(item.product_number as string);
+      });
+    }
+
+    // Convert to result format
+    const result: LocationComparison[] = Array.from(locationStats.entries()).map(([location_name, data]) => ({
       location_name,
       total_spend: data.total_spend,
-      total_invoices: Math.round(data.product_count * 2.5), // Estimate
-      avg_invoice_value: data.total_spend / Math.max(1, Math.round(data.product_count * 2.5)),
-      unique_products: data.product_count,
-      last_invoice_date: data.latest_date
+      total_invoices: data.invoice_count,
+      avg_invoice_value: data.total_spend / Math.max(1, data.invoice_count),
+      unique_products: locationProductCounts.get(location_name)?.size || 0,
+      last_invoice_date: data.last_invoice_date
     }));
 
-    console.log('✅ Got location comparison:', result.length);
-    return result;
+    // Sort by total spend (highest first)
+    const sortedResult = result.sort((a, b) => b.total_spend - a.total_spend);
+
+    console.log(`✅ Generated REAL location performance for ${sortedResult.length} locations`);
+    console.log(`💰 Total spend across all locations: $${sortedResult.reduce((sum, l) => sum + l.total_spend, 0).toLocaleString()}`);
+    console.log(`📄 Total invoices: ${sortedResult.reduce((sum, l) => sum + l.total_invoices, 0)}`);
+    
+    sortedResult.forEach(location => {
+      console.log(`  ${location.location_name}: $${location.total_spend.toLocaleString()} (${location.total_invoices} invoices, ${location.unique_products} products)`);
+    });
+    
+    return sortedResult;
   } catch (error) {
-    console.error('❌ Error getting location comparison:', error);
+    console.error('❌ Error getting real location comparison:', error);
     throw error;
   }
 }
