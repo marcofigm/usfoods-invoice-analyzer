@@ -327,49 +327,96 @@ export async function getLocationComparison(): Promise<LocationComparison[]> {
   }
 }
 
-// Generate mock monthly trends based on available data
+// Get REAL monthly spending trends from actual invoice data
 export async function getMonthlySpendTrends(months: number = 12): Promise<MonthlySpendTrend[]> {
   try {
-    console.log('📅 Getting monthly trends...');
+    console.log('📅 Getting REAL monthly trends from invoice data...');
     
-    const products = await getProductsSummary();
-    if (!products || products.length === 0) {
+    // Get actual invoices from database
+    const { data: invoices, error } = await supabase
+      .from('invoices')
+      .select(`
+        invoice_date,
+        net_amount,
+        location:locations(name)
+      `)
+      .order('invoice_date');
+
+    if (error) {
+      console.error('❌ Error fetching invoices for monthly trends:', error);
       return [];
     }
 
-    // Generate mock monthly data based on total spend
+    if (!invoices || invoices.length === 0) {
+      console.log('⚠️ No invoices found for monthly trends');
+      return [];
+    }
+
+    // Group invoices by month/year
+    const monthlyData = new Map<string, {
+      total_spend: number;
+      invoice_count: number;
+      unique_locations: Set<string>;
+      invoices: Record<string, unknown>[];
+    }>();
+
     const monthNames = [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
-    const totalSpend = products.reduce((sum: number, p: ProductSummary) => sum + p.total_spent, 0);
-    const currentDate = new Date();
-    const trends: MonthlySpendTrend[] = [];
-
-    for (let i = months - 1; i >= 0; i--) {
-      const date = new Date(currentDate);
-      date.setMonth(date.getMonth() - i);
+    invoices.forEach((invoice) => {
+      const invoiceDate = new Date(invoice.invoice_date);
+      const monthKey = `${invoiceDate.getFullYear()}-${invoiceDate.getMonth() + 1}`;
       
-      // Generate realistic variation in spending
-      const variation = 0.7 + (Math.random() * 0.6); // 70% to 130% variation
-      const monthlySpend = (totalSpend / 14) * variation; // Assume 14 months of data
+      if (!monthlyData.has(monthKey)) {
+        monthlyData.set(monthKey, {
+          total_spend: 0,
+          invoice_count: 0,
+          unique_locations: new Set(),
+          invoices: []
+        });
+      }
       
-      trends.push({
-        year: date.getFullYear(),
-        month: date.getMonth() + 1,
-        month_name: monthNames[date.getMonth()],
-        total_spend: monthlySpend,
-        invoice_count: Math.round(20 + Math.random() * 15), // 20-35 invoices per month
-        avg_invoice_value: monthlySpend / Math.max(1, Math.round(20 + Math.random() * 15)),
-        unique_products: Math.round(products.length * (0.6 + Math.random() * 0.3)) // 60-90% of products per month
-      });
-    }
+      const monthData = monthlyData.get(monthKey)!;
+      monthData.total_spend += invoice.net_amount || 0;
+      monthData.invoice_count += 1;
+      monthData.invoices.push(invoice);
+      
+      // Track unique locations
+      const location = invoice.location as unknown;
+      const locationName = ((location as Record<string, unknown>)?.name as string) || 'Unknown';
+      monthData.unique_locations.add(locationName);
+    });
 
-    console.log('✅ Generated monthly trends:', trends.length);
+    // Convert to array and sort by date (most recent first for display)
+    const trends: MonthlySpendTrend[] = Array.from(monthlyData.entries())
+      .map(([monthKey, data]) => {
+        const [year, month] = monthKey.split('-').map(Number);
+        return {
+          year,
+          month,
+          month_name: monthNames[month - 1],
+          total_spend: data.total_spend,
+          invoice_count: data.invoice_count,
+          avg_invoice_value: data.total_spend / Math.max(1, data.invoice_count),
+          unique_products: Math.round(data.invoice_count * 2.5) // Estimate based on invoice frequency
+        };
+      })
+      .sort((a, b) => {
+        // Sort by year, then month (oldest first for chart display)
+        if (a.year !== b.year) return a.year - b.year;
+        return a.month - b.month;
+      })
+      .slice(-months); // Take last N months
+
+    console.log(`✅ Generated REAL monthly trends for ${trends.length} months`);
+    console.log(`📊 Date range: ${trends[0]?.month_name} ${trends[0]?.year} to ${trends[trends.length - 1]?.month_name} ${trends[trends.length - 1]?.year}`);
+    console.log(`💰 Total spend across all months: $${trends.reduce((sum, t) => sum + t.total_spend, 0).toLocaleString()}`);
+    
     return trends;
   } catch (error) {
-    console.error('❌ Error getting monthly trends:', error);
+    console.error('❌ Error getting real monthly trends:', error);
     throw error;
   }
 }
